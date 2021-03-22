@@ -65,7 +65,7 @@ namespace colorsair {
         libusb_reset_device(handle);
     }
     
-    WriteResult Device::writeInterrupt(unsigned char endpoint, std::vector<unsigned char> data) {
+    WriteResult Device::writeInterrupt(unsigned char endpoint, std::array<unsigned char, 64> data) {
         int written;
         int res = LIBUSB_ERROR_TIMEOUT;
         int attempts = 0;

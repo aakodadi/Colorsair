@@ -22,22 +22,28 @@
 namespace colorsair {
     class FanController {
         public:
-            FanController(Device& dev, unsigned int fansCount, uint8_t framerate = 20);
+            FanController(Device& dev, unsigned char fansCount, uint8_t framerate = 20);
             FanController(const FanController& orig) = delete;
             virtual ~FanController();
             
             template<class EFFECT_T>
-            void setEffect(unsigned int fanId, EFFECT_T effect) {
+            void setEffect(unsigned char fanId, EFFECT_T effect) {
                 std::lock_guard<std::mutex> lock(stateMutex);
                 effects[fanId] = std::make_unique<EFFECT_T>(effect);
             }
 
             void loop();
             
-            unsigned int getFansCount();
+            unsigned char getFansCount();
         private:
+            static const std::array<unsigned char, 64> MAGIC_DATA_1;
+            static const std::array<unsigned char, 64> MAGIC_DATA_2;
+            static const std::array<unsigned char, 64> MAGIC_DATA_3;
+            static const std::array<unsigned char, 64> MAGIC_DATA_4;
+            static const std::array<std::array<unsigned char, 64>, 5> MAGIC_DATA;
+            static std::array<unsigned char, 64> COLOR_DATA;
             Device& dev;
-            unsigned int fansCount;
+            unsigned char fansCount;
             std::vector<std::unique_ptr<Effect>> effects;
             std::mutex stateMutex;
             

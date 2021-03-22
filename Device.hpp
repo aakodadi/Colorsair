@@ -11,7 +11,7 @@
 #include <libusb-1.0/libusb.h>
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <array>
 
 #include "Types.hpp"
 
@@ -38,7 +38,7 @@ namespace colorsair {
             bool detachKernelDriver();
             int openInterface(int id);
             void reset();
-            WriteResult writeInterrupt(unsigned char endpoint, std::vector<unsigned char> data);
+            WriteResult writeInterrupt(unsigned char endpoint, std::array<unsigned char, 64> data);
             
             static const uint16_t VENDOR_ID;
             static const uint16_t LIGHTNING_NODE_ID;

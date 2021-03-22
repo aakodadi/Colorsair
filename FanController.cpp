@@ -17,7 +17,21 @@
 #include "FanController.hpp"
 
 namespace colorsair {
-    std::ostream &operator<<(std::ostream& os, const std::vector<uint8_t>& list) {
+
+    const std::array<unsigned char, 64> FanController::MAGIC_DATA_1 {0x33, 0xFF};
+    const std::array<unsigned char, 64> FanController::MAGIC_DATA_2 {0x38, 0x01, 0x02};
+    const std::array<unsigned char, 64> FanController::MAGIC_DATA_3 {0x34, 0x01};
+    const std::array<unsigned char, 64> FanController::MAGIC_DATA_4 {0x38, 0x00, 0x02};
+    const std::array<std::array<unsigned char, 64>, 5> FanController::MAGIC_DATA {
+        FanController::MAGIC_DATA_1,
+        FanController::MAGIC_DATA_2,
+        FanController::MAGIC_DATA_3,
+        FanController::MAGIC_DATA_1,
+        FanController::MAGIC_DATA_4
+    };
+    std::array<unsigned char, 64> FanController::COLOR_DATA {0x32, 0x00, 0x00};
+
+    std::ostream &operator<<(std::ostream& os, const std::array<unsigned char, 64>& list) {
         cout << "{ ";
         for(uint8_t val : list)
             os << "0x" << std::hex << std::setfill('0') << std::setw(2) << (int)val << ", ";
@@ -25,7 +39,7 @@ namespace colorsair {
         return os;
     }
     
-    FanController::FanController(Device& dev, unsigned int fansCount, uint8_t framerate)
+    FanController::FanController(Device& dev, unsigned char fansCount, uint8_t framerate)
             : dev(dev), fansCount(fansCount), framerate(framerate),
               timestep(1000/framerate), frameCountTime(std::chrono::system_clock::now()) {
         effects.reserve(fansCount);
@@ -38,16 +52,9 @@ namespace colorsair {
     
     void FanController::loop() {
         dev.reset();
-        
-        std::vector<uint8_t> magicData[] {
-            {0x33, 0xFF},
-            {0x38, 0x01, 0x02},
-            {0x34, 0x01},
-            {0x33, 0xFF},
-            {0x38, 0x00, 0x02}
-        };
-        std::vector<uint8_t> colorData {0x32, 0x00, 0x00, (uint8_t)(fansCount*4)};
-        
+
+        COLOR_DATA[3] = (unsigned char) (fansCount * 4);
+
         for(;;) {
             frameStart = std::chrono::system_clock::now();
             for(int i = 0; i < effects.size(); ++i) {
@@ -57,39 +64,32 @@ namespace colorsair {
             }
 
             // write constant boilerplate
-            for(auto line : magicData) {
-                while(line.size() < 64) //pad the data with zeroes
-                    line.push_back(0x00);
-
+            for(auto line : MAGIC_DATA) {
                 WriteResult wr = dev.writeInterrupt(1, line);
                 if(wr.result != 0 || wr.written != 64)
                     std::cout << "Write Error #" << wr.result << " | written " << wr.written << endl;
             }
             
             // write colors
-            for(int channel = 0; channel < 3; ++channel) {
-                std::vector<uint8_t> colorCmd(colorData.begin(), colorData.end());
-                colorCmd.reserve(64);
-                colorCmd.push_back(channel);
-                for(int i = 0; i < fansCount*4; ++i) {
+            for(int channel = 0; channel < 3; channel++) {
+                COLOR_DATA[4] = channel;
+                for(int i = 0; i < fansCount * 4; i++) {
                     std::lock_guard<std::mutex> lock(stateMutex);
                     switch(channel) {
                         case 0:
-                            colorCmd.push_back(effects[i/4]->colors[i%4].r);
+                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].r;
                             break;
                         case 1:
-                            colorCmd.push_back(effects[i/4]->colors[i%4].g);
+                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].g;
                             break;
                         case 2:
-                            colorCmd.push_back(effects[i/4]->colors[i%4].b);
+                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].b;
                             break;
                         default:;
                     }
                 }
-                while(colorCmd.size() < 64)
-                    colorCmd.push_back(0x00);
-                //std::cout << colorCmd << "\n" << std::endl;
-                WriteResult wr = dev.writeInterrupt(1, colorCmd);
+                // std::cout << "COLOR_DATA: " << COLOR_DATA << std::endl << std::endl;
+                WriteResult wr = dev.writeInterrupt(1, COLOR_DATA);
                 if(wr.result != 0 || wr.written != 64)
                     std::cout << "Write Error #" << wr.result << " | written " << wr.written << std::endl;
             }
@@ -110,7 +110,7 @@ namespace colorsair {
         }
     }
     
-    unsigned int FanController::getFansCount() {
-        return effects.size();
+    unsigned char FanController::getFansCount() {
+        return fansCount;
     }
 }
