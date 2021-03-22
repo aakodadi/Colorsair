@@ -13,7 +13,7 @@ namespace colorsair {
     using namespace std;
     
     const uint16_t Device::VENDOR_ID = 0x1b1c;
-    const uint16_t Device::LIGHTNING_NODE_ID = 0x0c0b;
+    const uint16_t Device::LIGHTNING_NODE_ID = 0x0c1a;
     
     bool Device::libusbInitialized = false;
     int Device::libusbInitCode = std::numeric_limits<int>::min();
