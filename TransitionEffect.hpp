@@ -34,6 +34,7 @@ namespace colorsair {
                     from = to;
                     to = provider.next();
                 }
+                return progress;
             }
         private:
             PROVIDER_T provider;
