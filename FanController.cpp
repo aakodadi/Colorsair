@@ -18,30 +18,38 @@
 
 namespace colorsair {
 
-    const std::array<unsigned char, 64> FanController::MAGIC_DATA_1 {0x33, 0xFF};
-    const std::array<unsigned char, 64> FanController::MAGIC_DATA_2 {0x38, 0x01, 0x02};
-    const std::array<unsigned char, 64> FanController::MAGIC_DATA_3 {0x34, 0x01};
-    const std::array<unsigned char, 64> FanController::MAGIC_DATA_4 {0x38, 0x00, 0x02};
-    const std::array<std::array<unsigned char, 64>, 5> FanController::MAGIC_DATA {
-        FanController::MAGIC_DATA_1,
-        FanController::MAGIC_DATA_2,
-        FanController::MAGIC_DATA_3,
-        FanController::MAGIC_DATA_1,
-        FanController::MAGIC_DATA_4
+    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_1 {0x33, 0xFF};
+    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_2 {0x38, 0x01, 0x02};
+    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_3 {0x34, 0x01};
+    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_4 {0x38, 0x00, 0x02};
+    const std::array<std::array<unsigned char, 64>, 5> FanController::MAGIC_FRAME {
+        FanController::MAGIC_FRAME_1,
+        FanController::MAGIC_FRAME_2,
+        FanController::MAGIC_FRAME_3,
+        FanController::MAGIC_FRAME_1,
+        FanController::MAGIC_FRAME_4
     };
-    std::array<unsigned char, 64> FanController::COLOR_DATA {0x32, 0x00, 0x00};
+    std::array<unsigned char, 64> FanController::COLOR_FRAME {0x32, 0x00, 0x00};
 
     std::ostream &operator<<(std::ostream& os, const std::array<unsigned char, 64>& list) {
         cout << "{ ";
-        for(uint8_t val : list)
+        for(unsigned char val : list)
+            os << "0x" << std::hex << std::setfill('0') << std::setw(2) << (int)val << ", ";
+        os << "}";
+        return os;
+    }
+    std::ostream &operator<<(std::ostream& os, const std::vector<unsigned char>& list) {
+        cout << "{ ";
+        for(unsigned char val : list)
             os << "0x" << std::hex << std::setfill('0') << std::setw(2) << (int)val << ", ";
         os << "}";
         return os;
     }
     
-    FanController::FanController(Device& dev, unsigned char fansCount, uint8_t framerate)
-            : dev(dev), fansCount(fansCount), framerate(framerate),
-              timestep(1000/framerate), frameCountTime(std::chrono::system_clock::now()) {
+    FanController::FanController(Device& dev, unsigned char fansCount, unsigned char ledsPerFan, uint8_t framerate) :
+            dev(dev), fansCount(fansCount), ledsPerFan(ledsPerFan), framerate(framerate),
+            timestep(1000/framerate), frameCountTime(std::chrono::system_clock::now()),
+            colorBuffer(fansCount, ledsPerFan) {
         effects.reserve(fansCount);
         for(int i = 0; i < fansCount; ++i)
             effects.push_back(nullptr);
@@ -53,7 +61,23 @@ namespace colorsair {
     void FanController::loop() {
         dev.reset();
 
-        COLOR_DATA[3] = (unsigned char) (fansCount * 4);
+        const unsigned char ledsCount = fansCount * ledsPerFan;
+        COLOR_FRAME[3] = (unsigned char) ledsCount;
+
+        // colorBuffer.rSet(0, 0, 0xFF);
+        // colorBuffer.rSet(1, 0, 0xFF);
+        // colorBuffer.rSet(2, 0, 0xFF);
+
+        // colorBuffer.rSet(0, 1, 0xFF);
+        // colorBuffer.rSet(1, 1, 0xFF);
+        // colorBuffer.rSet(2, 1, 0xFF);
+
+        // colorBuffer.set(0, 0, 0xFF000040);
+        
+        // colorBuffer.fanSet(0, 0xFF000040);
+
+        colorBuffer.ledSet(0, 0xFF000040);
+
 
         for(;;) {
             frameStart = std::chrono::system_clock::now();
@@ -64,7 +88,7 @@ namespace colorsair {
             }
 
             // write constant boilerplate
-            for(auto line : MAGIC_DATA) {
+            for(auto line : MAGIC_FRAME) {
                 WriteResult wr = dev.writeInterrupt(1, line);
                 if(wr.result != 0 || wr.written != 64)
                     std::cout << "Write Error #" << wr.result << " | written " << wr.written << endl;
@@ -72,24 +96,41 @@ namespace colorsair {
             
             // write colors
             for(int channel = 0; channel < 3; channel++) {
-                COLOR_DATA[4] = channel;
-                for(int i = 0; i < fansCount * 4; i++) {
+                COLOR_FRAME[4] = channel;
+                for (int fan = 0; fan < fansCount; fan++) {
+                    for (int led = 0; led < ledsPerFan; led++){
+                        switch(channel) {
+                            case 0:
+                        COLOR_FRAME[fan * ledsPerFan + led + 5] = colorBuffer.rGet(fan, led);
+                                break;
+                            case 1:
+                        COLOR_FRAME[fan * ledsPerFan + led + 5] = colorBuffer.gGet(fan, led);
+                                break;
+                            case 2:
+                        COLOR_FRAME[fan * ledsPerFan + led + 5] = colorBuffer.bGet(fan, led);
+                                break;
+                            default:;
+                        }
+                    }
+                }
+                
+/*                 for(int i = 0; i < fansCount * ledsPerFan; i++) {
                     std::lock_guard<std::mutex> lock(stateMutex);
                     switch(channel) {
                         case 0:
-                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].r;
+                            COLOR_FRAME[5 + i] = effects[i/ledsPerFan]->colors[i%ledsPerFan].r;
                             break;
                         case 1:
-                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].g;
+                            COLOR_FRAME[5 + i] = effects[i/ledsPerFan]->colors[i%ledsPerFan].g;
                             break;
                         case 2:
-                            COLOR_DATA[5 + i] = effects[i/4]->colors[i%4].b;
+                            COLOR_FRAME[5 + i] = effects[i/ledsPerFan]->colors[i%ledsPerFan].b;
                             break;
                         default:;
                     }
-                }
-                // std::cout << "COLOR_DATA: " << COLOR_DATA << std::endl << std::endl;
-                WriteResult wr = dev.writeInterrupt(1, COLOR_DATA);
+                } */
+                std::cout << "COLOR_FRAME: " << COLOR_FRAME << std::endl << std::endl;
+                WriteResult wr = dev.writeInterrupt(1, COLOR_FRAME);
                 if(wr.result != 0 || wr.written != 64)
                     std::cout << "Write Error #" << wr.result << " | written " << wr.written << std::endl;
             }

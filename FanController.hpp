@@ -15,6 +15,7 @@
 #include "Device.hpp"
 #include "Types.hpp"
 #include "Effect.hpp"
+#include "ColorBuffer.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -22,7 +23,7 @@
 namespace colorsair {
     class FanController {
         public:
-            FanController(Device& dev, unsigned char fansCount, uint8_t framerate = 20);
+            FanController(Device& dev, unsigned char fansCount, unsigned char ledsPerFan, uint8_t framerate = 20);
             FanController(const FanController& orig) = delete;
             virtual ~FanController();
             
@@ -36,14 +37,16 @@ namespace colorsair {
             
             unsigned char getFansCount();
         private:
-            static const std::array<unsigned char, 64> MAGIC_DATA_1;
-            static const std::array<unsigned char, 64> MAGIC_DATA_2;
-            static const std::array<unsigned char, 64> MAGIC_DATA_3;
-            static const std::array<unsigned char, 64> MAGIC_DATA_4;
-            static const std::array<std::array<unsigned char, 64>, 5> MAGIC_DATA;
-            static std::array<unsigned char, 64> COLOR_DATA;
+            static const std::array<unsigned char, 64> MAGIC_FRAME_1;
+            static const std::array<unsigned char, 64> MAGIC_FRAME_2;
+            static const std::array<unsigned char, 64> MAGIC_FRAME_3;
+            static const std::array<unsigned char, 64> MAGIC_FRAME_4;
+            static const std::array<std::array<unsigned char, 64>, 5> MAGIC_FRAME;
+            static std::array<unsigned char, 64> COLOR_FRAME;
+            ColorBuffer colorBuffer;
             Device& dev;
             unsigned char fansCount;
+            unsigned char ledsPerFan;
             std::vector<std::unique_ptr<Effect>> effects;
             std::mutex stateMutex;
             

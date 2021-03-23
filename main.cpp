@@ -28,17 +28,16 @@ int main(int argc, char** argv) {
         if((result = dev.openInterface(0)) == 0) {
             cout << "Communication channel established" << endl;
             
-            FanController ctrl(dev, 4);
+            FanController ctrl(dev, 3, 8);
             TransitionEffect<CyclicColorProvider> transition(5s, CyclicColorProvider({{0, 255, 0}, {255, 0, 0}, {0, 0, 255}}));
 
             ctrl.setEffect(0, transition);
             ctrl.setEffect(1, transition);
             ctrl.setEffect(2, transition);
-            ctrl.setEffect(3, transition);
             //ctrl.setEffect<BreathingEffect>(1, BreathingEffect(4s, {255, 255, 0}));
             
-            cout << "Loop started" << endl;
             ctrl.loop();
+            cout << "Loop started" << endl;
         } else
             cout << "Could not open device interface (error code " << result << ")";
     } catch(Uninitialized ex) {
