@@ -8,32 +8,32 @@ namespace colorsair {
 
     class ColorBuffer {
         public:
-            ColorBuffer(unsigned char fansCount, unsigned char ledsPerFan);
+            ColorBuffer(uint8_t fansCount, uint8_t ledsPerFan);
 
-            void rSet(unsigned char fan, unsigned char led, unsigned char value);
-            void gSet(unsigned char fan, unsigned char led, unsigned char value);
-            void bSet(unsigned char fan, unsigned char led, unsigned char value);
+            void rSet(uint8_t fan, uint8_t led, uint8_t value);
+            void gSet(uint8_t fan, uint8_t led, uint8_t value);
+            void bSet(uint8_t fan, uint8_t led, uint8_t value);
             
-            void set(unsigned char fan, unsigned char led, uint32_t rgba);
+            void set(uint8_t fan, uint8_t led, uint32_t rgba);
             
-            void fanSet(unsigned char fan, uint32_t rgba);
+            void fanSet(uint8_t fan, uint32_t rgba);
             
-            void ledSet(unsigned char led, uint32_t rgba);
+            void ledSet(uint8_t led, uint32_t rgba);
             
-            unsigned char rGet(unsigned char fan, unsigned char led);
-            unsigned char gGet(unsigned char fan, unsigned char led);
-            unsigned char bGet(unsigned char fan, unsigned char led);
+            uint8_t rGet(uint8_t fan, uint8_t led);
+            uint8_t gGet(uint8_t fan, uint8_t led);
+            uint8_t bGet(uint8_t fan, uint8_t led);
 
         private:
-            std::vector<std::vector<unsigned char>> rBuffer;
-            std::vector<std::vector<unsigned char>> gBuffer;
-            std::vector<std::vector<unsigned char>> bBuffer;
-            unsigned char fansCount;
-            unsigned char ledsPerFan;
+            std::vector<std::vector<uint8_t>> rBuffer;
+            std::vector<std::vector<uint8_t>> gBuffer;
+            std::vector<std::vector<uint8_t>> bBuffer;
+            uint8_t fansCount;
+            uint8_t ledsPerFan;
 
-            void checkFanIndex(unsigned char index);
-            void checkLedIndex(unsigned char index);
-            void checkIndex(unsigned char fan, unsigned char led);
+            void checkFanIndex(uint8_t index);
+            void checkLedIndex(uint8_t index);
+            void checkIndex(uint8_t fan, uint8_t led);
     };
 
 }

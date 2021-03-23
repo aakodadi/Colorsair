@@ -38,7 +38,7 @@ namespace colorsair {
             bool detachKernelDriver();
             int openInterface(int id);
             void reset();
-            WriteResult writeInterrupt(unsigned char endpoint, std::array<unsigned char, 64> data);
+            WriteResult writeInterrupt(uint8_t endpoint, std::array<uint8_t, 64> data);
             
             static const uint16_t VENDOR_ID;
             static const uint16_t LIGHTNING_NODE_ID;
