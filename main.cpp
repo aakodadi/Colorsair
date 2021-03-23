@@ -42,8 +42,6 @@ int main(int argc, char** argv) {
             cout << "Could not open device interface (error code " << result << ")";
     } catch(Uninitialized ex) {
         cout << ex.what() << endl;
-    } catch(exception ex) {
-        cout << ex.what() << "\nSorry it happened! Program will exit..." << endl;
     }
     
     Device::cleanup();

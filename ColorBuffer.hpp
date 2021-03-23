@@ -30,6 +30,10 @@ namespace colorsair {
             std::vector<std::vector<unsigned char>> bBuffer;
             unsigned char fansCount;
             unsigned char ledsPerFan;
+
+            void checkFanIndex(unsigned char index);
+            void checkLedIndex(unsigned char index);
+            void checkIndex(unsigned char fan, unsigned char led);
     };
 
 }
