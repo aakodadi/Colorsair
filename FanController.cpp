@@ -18,35 +18,35 @@
 
 namespace colorsair {
 
-    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_1 {0x33, 0xFF};
-    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_2 {0x38, 0x01, 0x02};
-    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_3 {0x34, 0x01};
-    const std::array<unsigned char, 64> FanController::MAGIC_FRAME_4 {0x38, 0x00, 0x02};
-    const std::array<std::array<unsigned char, 64>, 5> FanController::MAGIC_FRAME {
+    const std::array<uint8_t, 64> FanController::MAGIC_FRAME_1 {0x33, 0xFF};
+    const std::array<uint8_t, 64> FanController::MAGIC_FRAME_2 {0x38, 0x01, 0x02};
+    const std::array<uint8_t, 64> FanController::MAGIC_FRAME_3 {0x34, 0x01};
+    const std::array<uint8_t, 64> FanController::MAGIC_FRAME_4 {0x38, 0x00, 0x02};
+    const std::array<std::array<uint8_t, 64>, 5> FanController::MAGIC_FRAME {
         FanController::MAGIC_FRAME_1,
         FanController::MAGIC_FRAME_2,
         FanController::MAGIC_FRAME_3,
         FanController::MAGIC_FRAME_1,
         FanController::MAGIC_FRAME_4
     };
-    std::array<unsigned char, 64> FanController::COLOR_FRAME {0x32, 0x00, 0x00};
+    std::array<uint8_t, 64> FanController::COLOR_FRAME {0x32, 0x00, 0x00};
 
-    std::ostream &operator<<(std::ostream& os, const std::array<unsigned char, 64>& list) {
+    std::ostream &operator<<(std::ostream& os, const std::array<uint8_t, 64>& list) {
         cout << "{ ";
-        for(unsigned char val : list)
+        for(uint8_t val : list)
             os << "0x" << std::hex << std::setfill('0') << std::setw(2) << (int)val << ", ";
         os << "}";
         return os;
     }
-    std::ostream &operator<<(std::ostream& os, const std::vector<unsigned char>& list) {
+    std::ostream &operator<<(std::ostream& os, const std::vector<uint8_t>& list) {
         cout << "{ ";
-        for(unsigned char val : list)
+        for(uint8_t val : list)
             os << "0x" << std::hex << std::setfill('0') << std::setw(2) << (int)val << ", ";
         os << "}";
         return os;
     }
     
-    FanController::FanController(Device& dev, unsigned char fansCount, unsigned char ledsPerFan, uint8_t framerate) :
+    FanController::FanController(Device& dev, uint8_t fansCount, uint8_t ledsPerFan, uint8_t framerate) :
             dev(dev), fansCount(fansCount), ledsPerFan(ledsPerFan), framerate(framerate),
             timestep(1000/framerate), frameCountTime(std::chrono::system_clock::now()),
             colorBuffer(fansCount, ledsPerFan) {
@@ -61,8 +61,8 @@ namespace colorsair {
     void FanController::loop() {
         dev.reset();
 
-        const unsigned char ledsCount = fansCount * ledsPerFan;
-        COLOR_FRAME[3] = (unsigned char) ledsCount;
+        const uint8_t ledsCount = fansCount * ledsPerFan;
+        COLOR_FRAME[3] = ledsCount;
 
         // colorBuffer.rSet(0, 0, 0xFF);
         // colorBuffer.rSet(1, 0, 0xFF);
@@ -151,7 +151,7 @@ namespace colorsair {
         }
     }
     
-    unsigned char FanController::getFansCount() {
+    uint8_t FanController::getFansCount() {
         return fansCount;
     }
 }

@@ -13,7 +13,7 @@
 
 namespace colorsair {
     struct RGB {
-        unsigned char r = 0, g = 0, b = 0;
+        uint8_t r = 0, g = 0, b = 0;
     };
     
     struct WriteResult {

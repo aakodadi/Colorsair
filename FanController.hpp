@@ -23,30 +23,30 @@
 namespace colorsair {
     class FanController {
         public:
-            FanController(Device& dev, unsigned char fansCount, unsigned char ledsPerFan, uint8_t framerate = 20);
+            FanController(Device& dev, uint8_t fansCount, uint8_t ledsPerFan, uint8_t framerate = 20);
             FanController(const FanController& orig) = delete;
             virtual ~FanController();
             
             template<class EFFECT_T>
-            void setEffect(unsigned char fanId, EFFECT_T effect) {
+            void setEffect(uint8_t fanId, EFFECT_T effect) {
                 std::lock_guard<std::mutex> lock(stateMutex);
                 effects[fanId] = std::make_unique<EFFECT_T>(effect);
             }
 
             void loop();
             
-            unsigned char getFansCount();
+            uint8_t getFansCount();
         private:
-            static const std::array<unsigned char, 64> MAGIC_FRAME_1;
-            static const std::array<unsigned char, 64> MAGIC_FRAME_2;
-            static const std::array<unsigned char, 64> MAGIC_FRAME_3;
-            static const std::array<unsigned char, 64> MAGIC_FRAME_4;
-            static const std::array<std::array<unsigned char, 64>, 5> MAGIC_FRAME;
-            static std::array<unsigned char, 64> COLOR_FRAME;
+            static const std::array<uint8_t, 64> MAGIC_FRAME_1;
+            static const std::array<uint8_t, 64> MAGIC_FRAME_2;
+            static const std::array<uint8_t, 64> MAGIC_FRAME_3;
+            static const std::array<uint8_t, 64> MAGIC_FRAME_4;
+            static const std::array<std::array<uint8_t, 64>, 5> MAGIC_FRAME;
+            static std::array<uint8_t, 64> COLOR_FRAME;
             ColorBuffer colorBuffer;
             Device& dev;
-            unsigned char fansCount;
-            unsigned char ledsPerFan;
+            uint8_t fansCount;
+            uint8_t ledsPerFan;
             std::vector<std::unique_ptr<Effect>> effects;
             std::mutex stateMutex;
             
